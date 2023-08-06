@@ -1,6 +1,7 @@
 import streamlit as st 
 import sqlite3
 from streamlit_option_menu import option_menu
+#from streamlit import option_menu
 import pandas as pd
 import datetime
 import mysql.connector
@@ -13,10 +14,24 @@ bussines_name='Almacenes Hunter'
 #hunter
 #@6D2mFh1nW=U
 
+st.set_option('browser.gatherUsageStats', False)
+
 host = '216.246.47.153'
 database = 'xnqgwfdq_storeHunter'
 user = 'xnqgwfdq_SHunter'
 password = 'IHx4Uv!8spMB'
+
+if 1==100:
+    import subprocess
+
+    # Instalar paquetes desde requirements.txt
+    try:
+        subprocess.run(['pip', 'install', '-r', 'requirements.txt'], check=True)
+    except Exception as e: 
+        print('instalando requeriments',e)
+else:
+    pass 
+
 
 # Declare the connection variable outside the try block
 connection = None

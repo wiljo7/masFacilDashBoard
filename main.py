@@ -6,6 +6,7 @@ import sqlite3
 import pandas as pd
 import datetime
 #import mysql.connector
+import sqlalchemy
 
 
 bussines_name='Almacenes Hunter'

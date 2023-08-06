@@ -1,6 +1,6 @@
 import streamlit as st 
 import sqlite3
-from streamlit_option_menu import option_menu
+#from streamlit_option_menu import option_menu
 #from streamlit import option_menu
 import pandas as pd
 import datetime
@@ -14,7 +14,10 @@ bussines_name='Almacenes Hunter'
 #hunter
 #@6D2mFh1nW=U
 
-st.set_option('browser.gatherUsageStats', False)
+try:
+    st.set_option('browser.gatherUsageStats', False)
+except Exception as e: 
+    print(e)
 
 host = '216.246.47.153'
 database = 'xnqgwfdq_storeHunter'
@@ -462,8 +465,15 @@ def dashboard():
             cm4.metric(label="Mantenimiento", value=len(room_for_repair), delta=str(rounds(len(room_for_repair)/len(list_hab)*100))+'%',delta_color="off")
 # 1. as sidebar menu
 with st.sidebar:
-    selected = option_menu("Menu Principal", ["Busqueda", 'Dashboard'], 
-        icons=['house', 'gear'], menu_icon="cast", default_index=0)
+    #selected = option_menu("Menu Principal", ["Busqueda", 'Dashboard'], 
+    #    icons=['house', 'gear'], menu_icon="cast", default_index=0)
+    #####
+    st.title('+Fácil Dashboard')
+    selected = st.selectbox(
+        'Que Deseas hacer ?',  
+        ('Busqueda', 'Dashboard'))
+    
+    
     #,
        # styles={
         #"container": {"padding": "0!important", "background-color": "#fafafa"},

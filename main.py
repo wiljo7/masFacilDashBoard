@@ -5,8 +5,6 @@ import sqlite3
 #from streamlit import option_menu
 import pandas as pd
 import datetime
-#import mysql.connector
-#import sqlalchemy
 
 
 bussines_name='Almacenes Hunter'
@@ -26,7 +24,7 @@ database = 'xnqgwfdq_storeHunter'
 user = 'xnqgwfdq_SHunter'
 password = 'IHx4Uv!8spMB'
 
-if 1==100:
+if 1==1:
     import subprocess
 
     # Instalar paquetes desde requirements.txt
@@ -36,6 +34,9 @@ if 1==100:
         print('instalando requeriments',e)
 else:
     pass 
+
+import mysql.connector
+import sqlalchemy
 
 
 # Declare the connection variable outside the try block

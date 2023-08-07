@@ -10,11 +10,13 @@ lc=c.readlines()
 info_dict={}
 for x in lc:
     try:
-        info=x.strip('\n','').split(';')
+        print(x)
+        info=x.strip('\n').split(';')
         info_dict[info[0]]=info[1]
     except Exception as e: 
         print(e)
 
+st.write(info_dict)
 bussines_name=info_dict['store_name']
 
 try:
@@ -45,7 +47,7 @@ try:
     import sqlalchemy
 except Exception as e: 
     print(e)
-    
+
 #import streamlit-menu-option as menu_option
 
 # Declare the connection variable outside the try block
@@ -203,7 +205,7 @@ def dashboard():
             
             #cursor
             if cnx=='l':
-                dfbusqueda=pd.dataFrame(data_records)
+                dfbusqueda=pd.DataFrame(data_records)
                 dfbusqueda.rename(columns={0:'Vendedor',1:'Fecha',2:'Hora',3:'Numero Factura',4:'Monto en $',5:'Copia de Factura'},inplace=True)
             
             else:

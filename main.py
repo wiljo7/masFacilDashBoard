@@ -25,6 +25,11 @@ except Exception as e:
     print(e)
 
 cnx=info_dict['connection']
+
+if cnx == 'l':
+    st.write('local')
+else:
+    st.write('remote')
 host = info_dict['host']
 database = info_dict['database']
 user = info_dict['user']

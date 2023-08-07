@@ -90,11 +90,13 @@ def busqueda():
 
     buscar_b=con1.button('Buscar')
 
+    #cur,con=conexion_()
     if article != '' or article != '' and buscar_b == True: 
         
         
         if cnx=='l':
             cur.execute("select PRECIO,PRECIO_BAJO from DIVISA where fecha = 2")
+            cursor=[x for x in cur]
         else:
             cursor=con.query("select PRECIO,PRECIO_BAJO from DIVISA where fecha = 2")
             columnas,cursor=convert_dataframeTotuples(cursor)
@@ -105,6 +107,7 @@ def busqueda():
 
         if cnx=='l':
             cur.execute(f"select Producto,codigo,Inventario,Venta_USD from Products where Producto like '%{article}%'or codigo like '%{article}%'")
+            cursor=[x for x in cur]
         else:
             cursor=con.query(f"select Producto,codigo,Inventario,Venta_USD from Products where Producto like '%{article}%'or codigo like '%{article}%'")
             columnas,cursor=convert_dataframeTotuples(cursor)

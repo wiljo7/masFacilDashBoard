@@ -40,8 +40,12 @@ if 1==1:
 else:
     pass 
 
-import mysql.connector
-import sqlalchemy
+try:
+    import mysql.connector
+    import sqlalchemy
+except Exception as e: 
+    print(e)
+    
 #import streamlit-menu-option as menu_option
 
 # Declare the connection variable outside the try block

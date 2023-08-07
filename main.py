@@ -16,7 +16,7 @@ for x in lc:
     except Exception as e: 
         print(e)
 
-st.write(info_dict)
+#st.write(info_dict)
 bussines_name=info_dict['store_name']
 
 try:

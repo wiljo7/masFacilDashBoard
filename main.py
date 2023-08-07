@@ -1,34 +1,39 @@
 import streamlit as st 
 import sqlite3
-#pip install --upgrade streamlit
-#from streamlit_option_menu import option_menu
-#from streamlit import option_menu
+import sqlite3
 import pandas as pd
 import datetime
 
 
-bussines_name='Almacenes Hunter'
-# Set the database connection details
-#xnqgwfdq_tfhunter1
-#tfhunter
-#hunter
-#@6D2mFh1nW=U
+c=open('configure.txt','r')
+lc=c.readlines() 
+info_dict={}
+for x in lc:
+    try:
+        info=x.strip('\n','').split(';')
+        info_dict[info[0]]=info[1]
+    except Exception as e: 
+        print(e)
+
+bussines_name=info_dict['store_name']
 
 try:
     st.set_option('browser.gatherUsageStats', False)
 except Exception as e: 
     print(e)
 
-host = '216.246.47.153'
-database = 'xnqgwfdq_storeHunter'
-user = 'xnqgwfdq_SHunter'
-password = 'IHx4Uv!8spMB'
+cnx=info_dict['connection']
+host = info_dict['host']
+database = info_dict['database']
+user = info_dict['user']
+password = info_dict['password']
 
 if 1==1:
     import subprocess
 
     # Instalar paquetes desde requirements.txt
     try:
+        print(['pip', 'install', '-r', 'requirements.txt'])
         subprocess.run(['pip', 'install', '-r', 'requirements.txt'], check=True)
     except Exception as e: 
         print('instalando requeriments',e)
@@ -37,7 +42,7 @@ else:
 
 import mysql.connector
 import sqlalchemy
-
+#import streamlit-menu-option as menu_option
 
 # Declare the connection variable outside the try block
 connection = None
@@ -47,20 +52,19 @@ table_names=[]
 
 
 def conexion_():
+
+    if cnx == 'l':
+        conexion=sqlite3.connect('proyecto_profesional.db')
+        cursor=conexion.cursor()
+        return cursor,conexion
+    else:
+        connection = st.experimental_connection('mysql', type='sql')
+        cursor=''
+        return cursor,connection
+
     
-    #connection = st.experimental_connection('mysql', type='sql')
-    connection = st.experimental_connection('mysql', type='sql')
-    
-    return connection
 
 
-
-def conexion2_():
-    conexion=sqlite3.connect('proyecto_profesional.db')
-    cursor=conexion.cursor()
-    return conexion
-
-conexion=conexion_()
 
 #connection = st.experimental_connection(**kwargs)#'mysql', type='sql')#, type='sql')
 
@@ -72,8 +76,10 @@ con3=st.container()
 
 
 
+cur,con=conexion_() 
 
 def busqueda():
+
     article=con1.text_input('Qué Articulo deseas buscar ?')
 
     buscar_b=con1.button('Buscar')
@@ -81,19 +87,24 @@ def busqueda():
     if article != '' or article != '' and buscar_b == True: 
         
         
-        cursor=conexion.query("select PRECIO,PRECIO_BAJO from DIVISA where fecha = 2")
+        if cnx=='l':
+            cur.execute("select PRECIO,PRECIO_BAJO from DIVISA where fecha = 2")
+        else:
+            cursor=con.query("select PRECIO,PRECIO_BAJO from DIVISA where fecha = 2")
+            columnas,cursor=convert_dataframeTotuples(cursor)
 
-        columnas,cursor=convert_dataframeTotuples(cursor)
         for x in cursor:
             dollar=float(x[0])
             print('result cursor',x)
-        #print('dollat',dollar)
-        
-        cursor=conexion.query(f"select Producto,codigo,Inventario,Venta_USD from Products where Producto like '%{article}%'or codigo like '%{article}%'")
-        columnas,cursor=convert_dataframeTotuples(cursor)
-        data =[[x[0],x[1],x[2],x[3], round(float(dollar)*float(x[3]),2)] for x in cursor]
-        #columns=['Producto','Codigo','Precio Venta']
 
+        if cnx=='l':
+            cur.execute(f"select Producto,codigo,Inventario,Venta_USD from Products where Producto like '%{article}%'or codigo like '%{article}%'")
+        else:
+            cursor=con.query(f"select Producto,codigo,Inventario,Venta_USD from Products where Producto like '%{article}%'or codigo like '%{article}%'")
+            columnas,cursor=convert_dataframeTotuples(cursor)
+        
+        data =[[x[0],x[1],x[2],x[3], round(float(dollar)*float(x[3]),2)] for x in cursor]
+        
         dfbusqueda=pd.DataFrame(data)
         dfbusqueda.rename(columns={0:'Producto',1:'Codigo',2:'Inventario',3:'Precio $',4:'Precio BsF'},inplace=True)
         con2.dataframe(dfbusqueda)
@@ -115,11 +126,16 @@ def dashboard():
         print('primera opcion')
         conexion=conexion_() 
 
-        conexion.query('select Producto from Products')
-        
-        data_products=[str(x[0]) for x in cursor]
+        if cnx=='l':
+            cur.execute('select Producto from Products')
+            data_products=[str(x[0]) for x in cur]
+        else:
+            cursor=con.query('select Producto from Products')
+            
+
         print('data',data_products.insert(0,''))
         con1.selectbox('Que producto desea analizar?',data_products)
+    
     #analizar un producto 
         #kardex entradas y salidas 
         #promedio de ventas mensuales 
@@ -170,34 +186,43 @@ def dashboard():
 
             date_check=f'{dia}-{mes}-{ldate2[0]}'
             
-            conexion=conexion_() 
+            cur,con=conexion_() 
 
+            if cnx=='l':
+                cur.execute(f"select Vendedor,fecha,hora,referencia,ingresoUSD,VisualFac from ingresosfull where fecha = '{date_check}'")
+                data_records=[x for x in cur]
+            else:
+                cursor=con.query(f"select Vendedor,fecha,hora,referencia,ingresoUSD,VisualFac from ingresosfull where fecha = '{date_check}'")
+                columns,data_records=convert_dataframeTotuples(cursor)
 
-            cursor=conexion.query(f"select Vendedor,fecha,hora,referencia,ingresoUSD,VisualFac from ingresosfull where fecha = '{date_check}'")
-            
             #f"select * from ingresosfull where fecha = '{date_check}'"
             
             #cursor
-            dfbusqueda=cursor
+            if cnx=='l':
+                dfbusqueda=pd.dataFrame(data_records)
+                dfbusqueda.rename(columns={0:'Vendedor',1:'Fecha',2:'Hora',3:'Numero Factura',4:'Monto en $',5:'Copia de Factura'},inplace=True)
             
-            columns,data_records=convert_dataframeTotuples(dfbusqueda) 
+            else:
+                dfbusqueda=cursor
+                dfbusqueda.rename(columns={columns[0]:'Vendedor',columns[1]:'Fecha',columns[2]:'Hora',columns[3]:'Numero Factura',columns[4]:'Monto en $',columns[5]:'Copia de Factura'},inplace=True)
+            
+             
             sales_quantity=len(data_records)
             
-            dfbusqueda.rename(columns={columns[0]:'Vendedor',columns[1]:'Fecha',columns[2]:'Hora',columns[3]:'Numero Factura',columns[4]:'Monto en $',columns[5]:'Copia de Factura'},inplace=True)
+            
             con2.subheader('Facturación del día')
             con2.dataframe(dfbusqueda)
             
             #### voy con los montos por medios de pago 
             print(f"select medio1,mmedio1,medio2,mmedio2,medio3,mmedio3,medio4,mmedio4,medio5,mmedio5,medio6,mmedio6,medio7,mmedio7,descuento from ingresosfull where fecha = '{date_check}'")
-            cursor=conexion.query(f"select medio1,mmedio1,medio2,mmedio2,medio3,mmedio3,medio4,mmedio4,medio5,mmedio5,medio6,mmedio6,medio7,mmedio7,descuento from ingresosfull where fecha = '{date_check}'")
             
-            columnsrecords,data_records_paid=convert_dataframeTotuples(cursor)
-            
-             #[list(x) for x in cursor]
-            #con2.write('data records paid')
-            #con2.write(data_records_paid)
-            #### montos por medios de pago 
-
+            if cnx=='l':
+                cur.execute(f"select medio1,mmedio1,medio2,mmedio2,medio3,mmedio3,medio4,mmedio4,medio5,mmedio5,medio6,mmedio6,medio7,mmedio7,descuento from ingresosfull where fecha = '{date_check}'")
+                data_records_paid=[x for x in cur]                
+            else:
+                cursor=con.query(f"select medio1,mmedio1,medio2,mmedio2,medio3,mmedio3,medio4,mmedio4,medio5,mmedio5,medio6,mmedio6,medio7,mmedio7,descuento from ingresosfull where fecha = '{date_check}'")
+                columnsrecords,data_records_paid=convert_dataframeTotuples(cursor)
+          
             
             medio_={}
             vueltoBs=0
@@ -354,10 +379,12 @@ def dashboard():
             
 
             # detalleIngreso 
-            cursor=conexion.query(f"select Productos,CANTIDAD from detalleIngreso where FECHA = '{date_check}'")
-
-            
-            columnas,cursor=convert_dataframeTotuples(cursor)
+            if cnx=='l':
+                cur.execute(f"select Productos,CANTIDAD from detalleIngreso where FECHA = '{date_check}'")
+                cursor=[x for x in cur]
+            else:
+                cursor=con.query(f"select Productos,CANTIDAD from detalleIngreso where FECHA = '{date_check}'")
+                columnas,cursor=convert_dataframeTotuples(cursor)
             
             dict_details={}
             list_Gproducts=[]
@@ -394,9 +421,13 @@ def dashboard():
             #print(list_keys)
             
             sentence="('"+"','".join(list_products_sell)+"')"
-            cursor=conexion.query(f"select Producto,Inventario from Products where Producto in {sentence}")
             
-            columnas,cursor=convert_dataframeTotuples(cursor)
+            if cnx=='l':
+                cur.execute(f"select Producto,Inventario from Products where Producto in {sentence}")
+                cursor=[x for x in cur]
+            else:
+                cursor=con.query(f"select Producto,Inventario from Products where Producto in {sentence}")
+                columnas,cursor=convert_dataframeTotuples(cursor)
             
             dict_inventory={}
             for x in cursor:
@@ -423,9 +454,14 @@ def dashboard():
             #con2.write(dict_details)
             # datos de hotel 
             sentence="('H01','H02','H03','H04','H05','H06','H07','H08','H09','H10','H11','H12','H13','H14','H15','H16','H17','H18','H19','H20','H21','H22','H23','H24','H25')"
-            cursor=conexion.query(f"select Codigo from Products where Codigo in {sentence}")
             
-            columnas,cursor=convert_dataframeTotuples(cursor)
+            if cnx == 'l':
+                cur.execute(f"select Codigo from Products where Codigo in {sentence}")
+                cursor=[x for x in cur]
+            else:
+                cursor=con.query(f"select Codigo from Products where Codigo in {sentence}")
+                columnas,cursor=convert_dataframeTotuples(cursor)
+
             list_hab=[]
             for x in cursor:
                 if x[0] not in list_hab:
@@ -435,9 +471,13 @@ def dashboard():
             ##### ahora voy a chequear el estatus de las habitaciones 
             
             #'OCUPADA','LIMPIEZA','MANTENIMIENTO'
-            cursor=conexion.query("select codigo_habitacion,estado from estado_habitacion where estado in ('LIMPIEZA','OCUPADA','MANTENIMIENTO')")
+            if cnx =='l':
+                cur.execute("select codigo_habitacion,estado from estado_habitacion where estado in ('LIMPIEZA','OCUPADA','MANTENIMIENTO')")
+                cursor=[x for x in cur]
+            else:
+                cursor=con.query("select codigo_habitacion,estado from estado_habitacion where estado in ('LIMPIEZA','OCUPADA','MANTENIMIENTO')")
+                columnas,cursor=convert_dataframeTotuples(cursor)
 
-            columnas,cursor=convert_dataframeTotuples(cursor)
             room_for_clean=[]
             room_for_repair=[]
             room_ocuppied=[]
